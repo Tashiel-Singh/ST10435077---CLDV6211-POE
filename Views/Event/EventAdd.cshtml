@@ -1,0 +1,35 @@
+﻿// Source: Saini (2024), ASP.NET Core MVC Crash Course
+// Adapted for event management system
+// Original concept: Generic viewmodel with EF Core
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "_Layout";
+}
+
+@model ST10435077___CLDV6211_POE.Event 
+@{
+    ViewData["Title"] = "Add Event";
+}
+
+<form asp-action="Add">
+    <div class="form-group">
+        <label asp-for="EventName"></label>
+        <input asp-for="EventName" class="form-control">
+    </div>
+    <div class="form-group">
+        <label asp-for="EventDate"></label>
+        <input asp-for="EventDate" class="form-control">
+    </div>
+    <div class="form-group">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="VenueId"></label>
+        <select asp-for="VenueId" asp-items="ViewBag.Venues" class="form-control"></select>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
