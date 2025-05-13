@@ -41,15 +41,30 @@ namespace ST10435077___CLDV6211_POE.Controllers
         [Route("VenueList")]
         public async Task<IActionResult> VenueList()
         {
-            try 
+            try
             {
+                _logger.LogInformation("Attempting to retrieve venue list");
+                
+                if (dbContext.Venue == null)
+                {
+                    _logger.LogError("Venue DbSet is null");
+                    return RedirectToAction("Error", "Home", new { message = "Database configuration error" });
+                }
+
                 var venues = await dbContext.Venue.ToListAsync();
+                _logger.LogInformation("Successfully retrieved {Count} venues", venues.Count);
+                
                 return View(venues);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while retrieving venues");
+                return RedirectToAction("Error", "Home", new { message = "Database error occurred. Please try again later." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while retrieving venue list");
-                return RedirectToAction("Error", "Home", new { message = "An error occurred while retrieving the venue list. Please try again later." });
+                _logger.LogError(ex, "Unexpected error occurred while retrieving venues");
+                return RedirectToAction("Error", "Home", new { message = "An unexpected error occurred while retrieving venues." });
             }
         }
 
@@ -81,10 +96,16 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 await dbContext.SaveChangesAsync();
                 return RedirectToAction("VenueList");
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while adding venue");
+                ModelState.AddModelError("", "A database error occurred while saving the venue. Please try again.");
+                return View(viewModel);
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while adding venue");
-                ModelState.AddModelError("", "An error occurred while saving the venue. Please try again.");
+                _logger.LogError(ex, "Unexpected error occurred while adding venue");
+                ModelState.AddModelError("", "An unexpected error occurred while saving the venue. Please try again.");
                 return View(viewModel);
             }
         }
@@ -98,10 +119,15 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 var venue = await dbContext.Venue.FindAsync(VenueID);
                 return View(venue);
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while retrieving venue for editing");
+                return RedirectToAction("Error", "Home", new { message = "A database error occurred while retrieving the venue. Please try again later." });
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while retrieving venue for editing");
-                return RedirectToAction("Error", "Home", new { message = "An error occurred while retrieving the venue. Please try again later." });
+                _logger.LogError(ex, "Unexpected error occurred while retrieving venue for editing");
+                return RedirectToAction("Error", "Home", new { message = "An unexpected error occurred while retrieving the venue. Please try again later." });
             }
         }
 
@@ -134,10 +160,16 @@ namespace ST10435077___CLDV6211_POE.Controllers
 
                 return RedirectToAction("VenueList");
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while editing venue");
+                ModelState.AddModelError("", "A database error occurred while saving the venue. Please try again.");
+                return View(viewModel);
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while editing venue");
-                ModelState.AddModelError("", "An error occurred while saving the venue. Please try again.");
+                _logger.LogError(ex, "Unexpected error occurred while editing venue");
+                ModelState.AddModelError("", "An unexpected error occurred while saving the venue. Please try again.");
                 return View(viewModel);
             }
         }
@@ -155,10 +187,15 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 }
                 return View(venue);
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while retrieving venue for deletion");
+                return RedirectToAction("Error", "Home", new { message = "A database error occurred while retrieving the venue. Please try again later." });
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while retrieving venue for deletion");
-                return RedirectToAction("Error", "Home", new { message = "An error occurred while retrieving the venue. Please try again later." });
+                _logger.LogError(ex, "Unexpected error occurred while retrieving venue for deletion");
+                return RedirectToAction("Error", "Home", new { message = "An unexpected error occurred while retrieving the venue. Please try again later." });
             }
         }
 
@@ -185,10 +222,16 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 dbContext.SaveChanges();
                 return RedirectToAction("VenueList");
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while deleting venue");
+                ModelState.AddModelError("", "A database error occurred while deleting the venue. Please try again.");
+                return RedirectToAction("VenueList");
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while deleting venue");
-                ModelState.AddModelError("", "An error occurred while deleting the venue. Please try again.");
+                _logger.LogError(ex, "Unexpected error occurred while deleting venue");
+                ModelState.AddModelError("", "An unexpected error occurred while deleting the venue. Please try again.");
                 return RedirectToAction("VenueList");
             }
         }
