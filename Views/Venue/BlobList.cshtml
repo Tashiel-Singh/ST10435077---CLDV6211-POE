@@ -1,0 +1,15 @@
+@model List<string>
+@{
+    ViewData["Title"] = "Uploaded Images";
+}
+<h2>Uploaded Images</h2>
+<ul>
+@foreach (var blob in Model)
+{
+    <li>
+        @blob
+        <a asp-action="DownloadImage" asp-route-fileName="@blob">Download</a>
+    </li>
+}
+</ul>
+<a asp-action="VenueList" class="btn btn-secondary">Back to Venue List</a>

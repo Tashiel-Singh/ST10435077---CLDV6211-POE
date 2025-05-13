@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Mvc;
 // [Accessed: 2025]  
 using Microsoft.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE.Models;
+using ST10435077___CLDV6211_POE.Services;
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http;
 using System.Linq;
 
 namespace ST10435077___CLDV6211_POE.Controllers
@@ -21,10 +24,12 @@ namespace ST10435077___CLDV6211_POE.Controllers
     public class VenueController : Controller
     {
         private readonly EventEaseContext dbContext;
+        private readonly BlobService _blobService;
 
-        public VenueController(EventEaseContext dbContext)
+        public VenueController(EventEaseContext dbContext, BlobService blobService)
         {
             this.dbContext = dbContext;
+            _blobService = blobService;
         }
 
         [HttpGet]
@@ -34,20 +39,22 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> VenueAdd(Venue viewModel)
+        public async Task<IActionResult> VenueAdd(Venue viewModel, IFormFile imageFile)
         {
-            var venue = new Venue
+            const long maxFileSize = 2 * 1024 * 1024; // 2MB
+            if (imageFile != null)
             {
-                VenueName = viewModel.VenueName,
-                Location = viewModel.Location,
-                Capacity = viewModel.Capacity,
-                ImageUrl = viewModel.ImageUrl
-            };
-
-            await dbContext.Venue.AddAsync(venue);
+                if (imageFile.Length > maxFileSize)
+                {
+                    ModelState.AddModelError("ImageUrl", "Image file size must be less than 2MB.");
+                    return View(viewModel);
+                }
+                await _blobService.UploadAsync(imageFile);
+                viewModel.ImageUrl = imageFile.FileName;
+            }
+            await dbContext.Venue.AddAsync(viewModel);
             await dbContext.SaveChangesAsync();
-
-            return View();
+            return RedirectToAction("VenueList");
         }
 
         [HttpGet]
@@ -66,8 +73,9 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> VenueEdit(Venue viewModel)
+        public async Task<IActionResult> VenueEdit(Venue viewModel, IFormFile imageFile)
         {
+            const long maxFileSize = 2 * 1024 * 1024; // 2MB
             var venue = await dbContext.Venue.FindAsync(viewModel.VenueId);
 
             if (venue is not null)
@@ -75,8 +83,16 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 venue.VenueName = viewModel.VenueName;
                 venue.Location = viewModel.Location;
                 venue.Capacity = viewModel.Capacity;
-                venue.ImageUrl = viewModel.ImageUrl;
-
+                if (imageFile != null)
+                {
+                    if (imageFile.Length > maxFileSize)
+                    {
+                        ModelState.AddModelError("ImageUrl", "Image file size must be less than 2MB.");
+                        return View(viewModel);
+                    }
+                    await _blobService.UploadAsync(imageFile);
+                    venue.ImageUrl = imageFile.FileName;
+                }
                 await dbContext.SaveChangesAsync();
             }
 
@@ -121,6 +137,33 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 ModelState.AddModelError("", "An error occurred while deleting the venue: " + ex.Message);
                 return RedirectToAction("VenueList");
             }
+        }
+
+        [HttpGet]
+        public IActionResult BlobList()
+        {
+            var blobs = _blobService.ListBlobsAsync().Result;
+            return View(blobs);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadImage(string fileName)
+        {
+            var (stream, contentType) = await _blobService.DownloadAsync(fileName);
+            return File(stream, contentType, fileName);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteImage(string fileName, int venueId)
+        {
+            await _blobService.DeleteAsync(fileName);
+            var venue = await dbContext.Venue.FindAsync(venueId);
+            if (venue != null && venue.ImageUrl == fileName)
+            {
+                venue.ImageUrl = null;
+                await dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction("VenueEdit", new { VenueID = venueId });
         }
     }
 }
