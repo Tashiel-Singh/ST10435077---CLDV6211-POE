@@ -17,19 +17,18 @@ namespace ST10435077___CLDV6211_POE.Services
             _blobServiceClient = blobServiceClient;
             _containerClient = _blobServiceClient.GetBlobContainerClient("venue-images");
             _containerClient.CreateIfNotExists(PublicAccessType.BlobContainer);
-        }
-
-        public async Task<bool> UploadAsync(IFormFile file)
+        }        public async Task<string> UploadAsync(IFormFile file)
         {
             try
             {
-                var blobClient = _containerClient.GetBlobClient(file.FileName);
+                var uniqueFileName = $"{Guid.NewGuid()}-{file.FileName}";
+                var blobClient = _containerClient.GetBlobClient(uniqueFileName);
                 await blobClient.UploadAsync(file.OpenReadStream(), true);
-                return true;
+                return blobClient.Uri.ToString();
             }
             catch (Exception)
             {
-                return false;
+                throw;
             }
         }
 

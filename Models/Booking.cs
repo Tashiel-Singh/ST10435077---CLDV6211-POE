@@ -1,8 +1,4 @@
-﻿// Source: Saini (2024), ASP.NET Core MVC Crash Course  
-// Adapted for event management system  
-// Original concept: Generic entity model with EF Core  
-
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
 namespace ST10435077___CLDV6211_POE.Models

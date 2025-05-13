@@ -1,17 +1,4 @@
-﻿// Author: Microsoft Corporation  
-// Year: 2023  
-// Title: ASP.NET Core MVC Framework  
-// Source: ASP.NET Core Documentation  
-// URL: https://docs.microsoft.com/en-us/aspnet/core  
-// [Accessed: 2025]  
-using Microsoft.AspNetCore.Mvc;
-
-// Author: PostgreSQL Global Development Group  
-// Year: 2023  
-// Title: Entity Framework Core  
-// Source: Microsoft Entity Framework Core Documentation  
-// URL: https://docs.microsoft.com/en-us/ef/core/  
-// [Accessed: 2025]  
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE.Models;
 using System.Linq;
@@ -44,7 +31,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 // Check for double booking
                 var isDoubleBooked = dbContext.Booking.Any(b => b.VenueId == viewModel.VenueId &&
                                                                 b.BookingDate.Date == viewModel.BookingDate.Date &&
-                                                                b.BookingDate.TimeOfDay == viewModel.BookingDate.TimeOfDay);
+                                                                b.BookingId != viewModel.BookingId);
 
                 if (isDoubleBooked)
                 {
@@ -56,7 +43,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 {
                     EventId = viewModel.EventId,
                     VenueId = viewModel.VenueId,
-                    BookingDate = DateTime.UtcNow, // Auto-set creation time
+                    BookingDate = DateTime.UtcNow,
                     Status = viewModel.Status
                 };
 

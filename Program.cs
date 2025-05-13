@@ -8,23 +8,28 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Add DbContext
+// Add DbContext with retry policy
 builder.Services.AddDbContext<EventEaseContext>(options => 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("EventEaseConnection")));
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("EventEaseConnection"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        });
+});
 
-// Add Azure Blob Storage
+// Add BlobService
 builder.Services.AddSingleton(x => 
-    new BlobServiceClient(builder.Configuration.GetConnectionString("AzureStorageConnection")));
-builder.Services.AddSingleton<BlobService>();
+    new BlobService(new BlobServiceClient(
+        builder.Configuration.GetConnectionString("AzureStorageConnection"))));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
+// Configure error handling first
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
@@ -33,11 +38,11 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 
+// Add both conventional and attribute routing
+app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

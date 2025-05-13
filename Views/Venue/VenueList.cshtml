@@ -14,6 +14,12 @@
 }
 
 <h2>Venue List</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 <table class="table table-striped">
     <thead>
         <tr>
