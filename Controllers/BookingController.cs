@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 // [Accessed: 2025]  
 using Microsoft.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE.Models;
+using System.Linq;
 
 namespace ST10435077___CLDV6211_POE.Controllers
 {
@@ -35,18 +36,40 @@ namespace ST10435077___CLDV6211_POE.Controllers
         [HttpPost]
         public async Task<IActionResult> BookingAdd(Booking viewModel)
         {
-            var booking = new Booking
+            try
             {
-                EventId = viewModel.EventId,
-                VenueId = viewModel.VenueId,
-                BookingDate = DateTime.UtcNow, // Auto-set creation time
-                Status = viewModel.Status
-            };
+                // Check for double booking
+                var isDoubleBooked = dbContext.Booking.Any(b => b.VenueId == viewModel.VenueId &&
+                                                                b.BookingDate.Date == viewModel.BookingDate.Date &&
+                                                                b.BookingDate.TimeOfDay == viewModel.BookingDate.TimeOfDay);
 
-            await dbContext.Booking.AddAsync(booking);
-            await dbContext.SaveChangesAsync();
+                if (isDoubleBooked)
+                {
+                    ModelState.AddModelError("", "This venue is already booked for the selected date and time.");
+                    return View(viewModel);
+                }
 
-            return RedirectToAction("BookingList"); // Changed to redirect
+                var booking = new Booking
+                {
+                    EventId = viewModel.EventId,
+                    VenueId = viewModel.VenueId,
+                    BookingDate = DateTime.UtcNow, // Auto-set creation time
+                    Status = viewModel.Status
+                };
+
+                if (ModelState.IsValid)
+                {
+                    await dbContext.Booking.AddAsync(booking);
+                    await dbContext.SaveChangesAsync();
+                    return RedirectToAction("BookingList");
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while creating the booking: " + ex.Message);
+            }
+
+            return View(viewModel);
         }
 
         [HttpGet]
@@ -88,7 +111,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteBooking(int BookingId) // Changed parameter type
+        public async Task<IActionResult> DeleteBooking(int BookingId)
         {
             var booking = await dbContext.Booking.FindAsync(BookingId);
 

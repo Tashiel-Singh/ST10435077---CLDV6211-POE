@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 // [Accessed: 2025]  
 using Microsoft.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE.Models;
+using System.Linq;
 
 namespace ST10435077___CLDV6211_POE.Controllers
 {
@@ -26,8 +27,6 @@ namespace ST10435077___CLDV6211_POE.Controllers
             this.dbContext = dbContext;
         }
 
-
-
         [HttpGet]
         public IActionResult VenueAdd()
         {
@@ -37,14 +36,12 @@ namespace ST10435077___CLDV6211_POE.Controllers
         [HttpPost]
         public async Task<IActionResult> VenueAdd(Venue viewModel)
         {
-
             var venue = new Venue
             {
                 VenueName = viewModel.VenueName,
                 Location = viewModel.Location,
                 Capacity = viewModel.Capacity,
                 ImageUrl = viewModel.ImageUrl
-
             };
 
             await dbContext.Venue.AddAsync(venue);
@@ -86,17 +83,44 @@ namespace ST10435077___CLDV6211_POE.Controllers
             return RedirectToAction("VenueList");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> DeleteVenue(Venue viewModel)
+        [HttpGet]
+        public async Task<IActionResult> VenueDelete(int venueId)
         {
-            var venue = await dbContext.Venue.AsNoTracking().FirstOrDefaultAsync(x => x.VenueId == viewModel.VenueId);
-
-            if (venue is not null)
+            var venue = await dbContext.Venue.FindAsync(venueId);
+            if (venue == null)
             {
-                dbContext.Venue.Remove(viewModel);
-                await dbContext.SaveChangesAsync();
+                return NotFound();
             }
-            return RedirectToAction("VenueList");
+            return View(venue);
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            try
+            {
+                var venue = dbContext.Venue.Include(v => v.Bookings).FirstOrDefault(v => v.VenueId == id);
+
+                if (venue == null)
+                {
+                    return NotFound();
+                }
+
+                if (venue.Bookings.Any())
+                {
+                    ModelState.AddModelError("", "This venue cannot be deleted as it is associated with active bookings.");
+                    return RedirectToAction("VenueList");
+                }
+
+                dbContext.Venue.Remove(venue);
+                dbContext.SaveChanges();
+                return RedirectToAction("VenueList");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while deleting the venue: " + ex.Message);
+                return RedirectToAction("VenueList");
+            }
         }
     }
 }

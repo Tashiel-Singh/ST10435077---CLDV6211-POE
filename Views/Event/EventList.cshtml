@@ -1,4 +1,4 @@
-﻿
+﻿@model ST10435077___CLDV6211_POE.Models.Event
 
 @*
     // Source: Saini (2024), ASP.NET Core MVC Crash Course
@@ -7,7 +7,19 @@
 *@
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Events";
+    ViewData["Title"] = "Event List";
+}
+
+<h1>Event List</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
 }
 
 <table class="table">

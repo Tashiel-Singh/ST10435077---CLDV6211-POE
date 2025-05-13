@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 // [Accessed: 2025]  
 using Microsoft.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE.Models;
+using System.Linq;
 
 namespace ST10435077___CLDV6211_POE.Controllers
 {
@@ -96,16 +97,44 @@ namespace ST10435077___CLDV6211_POE.Controllers
             return View(viewModel);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> DeleteEvent(int eventId)
+        [HttpGet]
+        public async Task<IActionResult> EventDelete(int eventId)
         {
             var @event = await _dbContext.Event.FindAsync(eventId);
-            if (@event != null)
+            if (@event == null)
             {
-                _dbContext.Event.Remove(@event);
-                await _dbContext.SaveChangesAsync();
+                return NotFound();
             }
-            return RedirectToAction("EventList");
+            return View(@event);
+        }
+
+        [HttpPost]
+        public IActionResult DeleteEvent(int eventId)
+        {
+            try
+            {
+                var eventEntity = _dbContext.Event.Include(e => e.Bookings).FirstOrDefault(e => e.EventId == eventId);
+
+                if (eventEntity == null)
+                {
+                    return NotFound();
+                }
+
+                if (eventEntity.Bookings.Any())
+                {
+                    ModelState.AddModelError("", "This event cannot be deleted as it is associated with active bookings.");
+                    return RedirectToAction("EventList");
+                }
+
+                _dbContext.Event.Remove(eventEntity);
+                _dbContext.SaveChanges();
+                return RedirectToAction("EventList");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while deleting the event: " + ex.Message);
+                return RedirectToAction("EventList");
+            }
         }
     }
 }

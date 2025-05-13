@@ -28,8 +28,6 @@ namespace ST10435077___CLDV6211_POE.Models
         public virtual ICollection<Event> Event { get; set; } = new List<Event>();
 
         // Navigation property: A Venue can be associated with multiple Bookings
-        public virtual ICollection<Venue> Booking { get; set; } = new List<Venue>();
-
-        
+        public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }

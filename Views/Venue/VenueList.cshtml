@@ -1,6 +1,4 @@
-﻿
-
-@*
+﻿@*
     // Source: Saini (2024), ASP.NET Core MVC Crash Course
 // Adapted for event management system
 // Original concept: Generic viewmodel with EF Core
@@ -9,9 +7,23 @@
     Layout = "_Layout";
 }
 
-@model List<ST10435077___CLDV6211_POE.Venue>           
+@model ST10435077___CLDV6211_POE.Models.Venue
 
-<h1>Venues</h1>     
+@{
+    ViewData["Title"] = "Venue List";
+}
+
+<h1>Venue List</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
 
 <table class="table">
     <thead>
@@ -22,23 +34,22 @@
             <th>Location</th>
             <th>Image Url</th>
         </tr>
-        </thead>
-            <tbody>
-                @foreach (var venue in Model)
-                {
-                    <tr>
-                        <td>@venue.VenueId</td>
-                        <td>@venue.VenueName</td>
-                        <td>@venue.Capacity</td>
-                        <td>@venue.Location</td>
-                        <td>@venue.ImageUrl</td>
-                        <td>
-                            <a class="btn btn-primary" asp-controller="Venue" asp-action="VenueEdit" asp-route-VenueID="@venue.VenueId" >Edit</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        
+    </thead>
+    <tbody>
+        @foreach (var venue in Model)
+        {
+            <tr>
+                <td>@venue.VenueId</td>
+                <td>@venue.VenueName</td>
+                <td>@venue.Capacity</td>
+                <td>@venue.Location</td>
+                <td>@venue.ImageUrl</td>
+                <td>
+                    <a class="btn btn-primary" asp-controller="Venue" asp-action="VenueEdit" asp-route-VenueID="@venue.VenueId">Edit</a>
+                </td>
+            </tr>
+        }
+    </tbody>
 </table>
 
 <div class="mt-3">
