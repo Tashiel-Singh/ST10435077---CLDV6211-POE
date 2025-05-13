@@ -1,4 +1,4 @@
-﻿@model ST10435077___CLDV6211_POE.Models.Event
+﻿@model IEnumerable<ST10435077___CLDV6211_POE.Models.Event>
 
 @*
     // Source: Saini (2024), ASP.NET Core MVC Crash Course
@@ -39,9 +39,9 @@
                 <td>@e.EventDate.ToString("d")</td>
                 <td>@e.Venue?.VenueName</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@e.EventId" class="btn btn-sm btn-warning">Edit</a>
-                    <form asp-action="Delete" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@e.EventId">
+                    <a asp-action="EventEdit" asp-route-eventId="@e.EventId" class="btn btn-sm btn-warning">Edit</a>
+                    <form asp-action="DeleteEvent" method="post" class="d-inline">
+                        <input type="hidden" name="eventId" value="@e.EventId">
                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                     </form>
                 </td>

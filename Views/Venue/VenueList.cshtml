@@ -38,8 +38,15 @@
                 }
             </td>
             <td>
-                <a asp-action="VenueEdit" asp-route-VenueID="@venue.VenueId">Edit</a> |
-                <a asp-action="VenueDelete" asp-route-id="@venue.VenueId">Delete</a>
+                <div style="display:inline-block">
+                    <a asp-action="VenueEdit" asp-route-VenueID="@venue.VenueId" class="btn btn-sm btn-warning">Edit</a>
+                </div>
+                <div style="display:inline-block">
+                    <form asp-action="Delete" method="post" class="d-inline">
+                        <input type="hidden" name="VenueID" value="@venue.VenueId" />
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
             </td>
         </tr>
     }
