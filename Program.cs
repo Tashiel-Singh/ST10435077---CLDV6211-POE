@@ -52,4 +52,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Add attribute routing support
+app.MapControllers();
+
 app.Run();

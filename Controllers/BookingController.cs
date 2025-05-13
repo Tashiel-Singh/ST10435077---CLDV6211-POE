@@ -18,6 +18,7 @@ using System.Linq;
 
 namespace ST10435077___CLDV6211_POE.Controllers
 {
+    [Route("[controller]")]
     public class BookingController : Controller
     {
         private readonly EventEaseContext dbContext;
@@ -28,12 +29,14 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
+        [Route("BookingAdd")]
         public IActionResult BookingAdd()
         {
             return View();
         }
 
         [HttpPost]
+        [Route("BookingAdd")]
         public async Task<IActionResult> BookingAdd(Booking viewModel)
         {
             try
@@ -73,16 +76,26 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
+        [Route("")]
+        [Route("BookingList")]
         public async Task<IActionResult> BookingList()
         {
-            var bookings = await dbContext.Booking
-                .Include(b => b.Event)
-                .Include(b => b.Venue)
-                .ToListAsync();
-            return View(bookings);
+            try 
+            {
+                var bookings = await dbContext.Booking
+                    .Include(b => b.Event)
+                    .Include(b => b.Venue)
+                    .ToListAsync();
+                return View(bookings);
+            }
+            catch 
+            {
+                return View("Error");
+            }
         }
 
         [HttpGet]
+        [Route("BookingEdit/{BookingID}")]
         public async Task<IActionResult> BookingEdit(int BookingID)
         {
             var booking = await dbContext.Booking
@@ -94,6 +107,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
+        [Route("BookingEdit")]
         public async Task<IActionResult> BookingEdit(Booking viewModel)
         {
             var booking = await dbContext.Booking.FindAsync(viewModel.BookingId);
@@ -111,6 +125,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
+        [Route("DeleteBooking/{BookingId}")]
         public async Task<IActionResult> DeleteBooking(int BookingId)
         {
             var booking = await dbContext.Booking.FindAsync(BookingId);

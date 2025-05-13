@@ -21,6 +21,7 @@ using System.Linq;
 
 namespace ST10435077___CLDV6211_POE.Controllers
 {
+    [Route("[controller]")]
     public class VenueController : Controller
     {
         private readonly EventEaseContext dbContext;
@@ -33,12 +34,31 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
+        [Route("")]
+        [Route("VenueList")]
+        public async Task<IActionResult> VenueList()
+        {
+            try 
+            {
+                var venues = await dbContext.Venue.ToListAsync();
+                return View(venues);
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                return View("Error");
+            }
+        }
+
+        [HttpGet]
+        [Route("VenueAdd")]
         public IActionResult VenueAdd()
         {
             return View();
         }
 
         [HttpPost]
+        [Route("VenueAdd")]
         public async Task<IActionResult> VenueAdd(Venue viewModel, IFormFile imageFile)
         {
             const long maxFileSize = 2 * 1024 * 1024; // 2MB
@@ -58,13 +78,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> VenueList()
-        {
-            var venue = await dbContext.Venue.ToListAsync();
-            return View(venue);  // Return the venue to the view
-        }
-
-        [HttpGet]
+        [Route("VenueEdit/{VenueID}")]
         public async Task<IActionResult> VenueEdit(int VenueID)
         {
             var venue = await dbContext.Venue.FindAsync(VenueID);
@@ -73,6 +87,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
+        [Route("VenueEdit")]
         public async Task<IActionResult> VenueEdit(Venue viewModel, IFormFile imageFile)
         {
             const long maxFileSize = 2 * 1024 * 1024; // 2MB
@@ -100,6 +115,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
+        [Route("VenueDelete/{venueId}")]
         public async Task<IActionResult> VenueDelete(int venueId)
         {
             var venue = await dbContext.Venue.FindAsync(venueId);
@@ -111,6 +127,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
+        [Route("Delete/{id}")]
         public IActionResult Delete(int id)
         {
             try
@@ -140,6 +157,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
+        [Route("BlobList")]
         public IActionResult BlobList()
         {
             var blobs = _blobService.ListBlobsAsync().Result;
@@ -147,6 +165,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
+        [Route("DownloadImage/{fileName}")]
         public async Task<IActionResult> DownloadImage(string fileName)
         {
             var (stream, contentType) = await _blobService.DownloadAsync(fileName);
@@ -154,6 +173,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpPost]
+        [Route("DeleteImage")]
         public async Task<IActionResult> DeleteImage(string fileName, int venueId)
         {
             await _blobService.DeleteAsync(fileName);
