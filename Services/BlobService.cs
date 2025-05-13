@@ -15,41 +15,70 @@ namespace ST10435077___CLDV6211_POE.Services
         public BlobService(BlobServiceClient blobServiceClient)
         {
             _blobServiceClient = blobServiceClient;
-            // TODO: Replace "your-container-name" with your actual container name
             _containerClient = _blobServiceClient.GetBlobContainerClient("venue-images");
             _containerClient.CreateIfNotExists(PublicAccessType.BlobContainer);
         }
 
-        public async Task UploadAsync(IFormFile file)
+        public async Task<bool> UploadAsync(IFormFile file)
         {
-            var blobClient = _containerClient.GetBlobClient(file.FileName);
-            await blobClient.UploadAsync(file.OpenReadStream(), true);
+            try
+            {
+                var blobClient = _containerClient.GetBlobClient(file.FileName);
+                await blobClient.UploadAsync(file.OpenReadStream(), true);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<List<string>> ListBlobsAsync()
         {
-            var blobs = new List<string>();
-            await foreach (var blobItem in _containerClient.GetBlobsAsync())
+            try
             {
-                blobs.Add(blobItem.Name);
+                var blobs = new List<string>();
+                await foreach (var blobItem in _containerClient.GetBlobsAsync())
+                {
+                    blobs.Add(blobItem.Name);
+                }
+                return blobs;
             }
-            return blobs;
+            catch (Exception)
+            {
+                return new List<string>();
+            }
         }
 
         public async Task<(Stream Stream, string ContentType)> DownloadAsync(string fileName)
         {
-            var blobClient = _containerClient.GetBlobClient(fileName);
-            var memoryStream = new MemoryStream();
-            await blobClient.DownloadToAsync(memoryStream);
-            memoryStream.Position = 0;
-            var properties = await blobClient.GetPropertiesAsync();
-            return (memoryStream, properties.Value.ContentType);
+            try
+            {
+                var blobClient = _containerClient.GetBlobClient(fileName);
+                var memoryStream = new MemoryStream();
+                await blobClient.DownloadToAsync(memoryStream);
+                memoryStream.Position = 0;
+                var properties = await blobClient.GetPropertiesAsync();
+                return (memoryStream, properties.Value.ContentType);
+            }
+            catch (Exception)
+            {
+                return (new MemoryStream(), "application/octet-stream");
+            }
         }
 
-        public async Task DeleteAsync(string fileName)
+        public async Task<bool> DeleteAsync(string fileName)
         {
-            var blobClient = _containerClient.GetBlobClient(fileName);
-            await blobClient.DeleteIfExistsAsync();
+            try
+            {
+                var blobClient = _containerClient.GetBlobClient(fileName);
+                await blobClient.DeleteIfExistsAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }
