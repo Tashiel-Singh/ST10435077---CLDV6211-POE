@@ -44,8 +44,9 @@
                     @if (!string.IsNullOrEmpty(venue.ImageUrl))
                     {
                         try {
-                            <img src="@Url.Action("DownloadImage", "Venue", new { fileName = Path.GetFileName(venue.ImageUrl) })" 
-                                 width="120" alt="Venue Image" 
+                            <img src="@Url.Action("DownloadImage", "Venue", new { fileName = venue.ImageUrl })" 
+                                 width="120" 
+                                 alt="Venue Image" 
                                  onerror="this.onerror=null; this.src='/images/placeholder.png'; this.alt='Image not available';" />
                         }
                         catch {

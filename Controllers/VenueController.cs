@@ -290,20 +290,17 @@ namespace ST10435077___CLDV6211_POE.Controllers
         {
             try
             {
-                // Remove any URL parameters if present
-                string cleanFileName = fileName.Split('?')[0];
-
-                // If the fileName is a full URL, extract just the filename part
-                if (Uri.TryCreate(cleanFileName, UriKind.Absolute, out var uri))
+                if (string.IsNullOrEmpty(fileName))
                 {
-                    cleanFileName = Path.GetFileName(uri.LocalPath);
+                    _logger.LogWarning("No file name provided");
+                    return NotFound();
                 }
 
-                var (stream, contentType) = await _blobService.DownloadAsync(cleanFileName);
-
+                var (stream, contentType) = await _blobService.DownloadAsync(fileName);
+                
                 if (stream == null)
                 {
-                    _logger.LogWarning("Image not found: {fileName}", cleanFileName);
+                    _logger.LogWarning("Image not found: {fileName}", fileName);
                     return NotFound();
                 }
 
@@ -312,7 +309,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
                     contentType = "image/jpeg"; // Default to JPEG if content type is not set
                 }
 
-                return File(stream, contentType, cleanFileName);
+                return File(stream, contentType, fileName);
             }
             catch (Exception ex)
             {
