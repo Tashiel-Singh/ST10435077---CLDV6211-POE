@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE;
 using Azure.Storage.Blobs;
 using ST10435077___CLDV6211_POE.Services;
@@ -28,8 +30,7 @@ builder.Services.AddSingleton<BlobService>();
 
 // Add HealthChecks
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<EventEaseContext>()
-    .AddAzureBlobStorage(builder.Configuration.GetConnectionString("AzureStorageConnection"));
+    .AddDbContextCheck<EventEaseContext>();
 
 var app = builder.Build();
 

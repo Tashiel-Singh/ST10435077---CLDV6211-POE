@@ -5,17 +5,13 @@
 // URL: https://docs.microsoft.com/en-us/aspnet/core  
 // [Accessed: 2025]  
 using Microsoft.AspNetCore.Mvc;
-
-// Author: PostgreSQL Global Development Group  
-// Year: 2023  
-// Title: Entity Framework Core  
-// Source: Microsoft Entity Framework Core Documentation  
-// URL: https://docs.microsoft.com/en-us/ef/core/  
-// [Accessed: 2025]  
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ST10435077___CLDV6211_POE.Models;
 using ST10435077___CLDV6211_POE.Services;
-using System.Diagnostics;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace ST10435077___CLDV6211_POE.Controllers
 {
@@ -63,11 +59,8 @@ namespace ST10435077___CLDV6211_POE.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to retrieve venue list");
-                return RedirectToAction("Error", "Home", new 
-                { 
-                    message = "Unable to retrieve venues. Please try again later." 
-                });
+                _logger.LogError(ex, "Failed to retrieve venue list");                TempData["Error"] = "Unable to retrieve venues. Please try again later.";
+                return View(new List<Venue>());
             }
         }
 
@@ -297,8 +290,29 @@ namespace ST10435077___CLDV6211_POE.Controllers
         {
             try
             {
-                var (stream, contentType) = await _blobService.DownloadAsync(fileName);
-                return File(stream, contentType, fileName);
+                // Remove any URL parameters if present
+                string cleanFileName = fileName.Split('?')[0];
+
+                // If the fileName is a full URL, extract just the filename part
+                if (Uri.TryCreate(cleanFileName, UriKind.Absolute, out var uri))
+                {
+                    cleanFileName = Path.GetFileName(uri.LocalPath);
+                }
+
+                var (stream, contentType) = await _blobService.DownloadAsync(cleanFileName);
+
+                if (stream == null)
+                {
+                    _logger.LogWarning("Image not found: {fileName}", cleanFileName);
+                    return NotFound();
+                }
+
+                if (string.IsNullOrEmpty(contentType))
+                {
+                    contentType = "image/jpeg"; // Default to JPEG if content type is not set
+                }
+
+                return File(stream, contentType, cleanFileName);
             }
             catch (Exception ex)
             {
