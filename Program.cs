@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE;
 using Azure.Storage.Blobs;
 using ST10435077___CLDV6211_POE.Services;
