@@ -21,10 +21,10 @@ builder.Services.AddDbContext<EventEaseContext>(options =>
         });
 });
 
-// Add BlobService
+// Add BlobServiceClient and BlobService
 builder.Services.AddSingleton(x => 
-    new BlobService(new BlobServiceClient(
-        builder.Configuration.GetConnectionString("AzureStorageConnection"))));
+    new BlobServiceClient(builder.Configuration.GetConnectionString("AzureStorageConnection")));
+builder.Services.AddSingleton<BlobService>();
 
 var app = builder.Build();
 

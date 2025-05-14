@@ -41,32 +41,33 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         // GET: Venue/VenueList
+        [HttpGet]
         public async Task<IActionResult> VenueList()
         {
             try
             {
+                _logger.LogInformation("Attempting to retrieve venue list");
+                
                 if (_dbContext.Venue == null)
                 {
-                    _logger.LogError("Venue DbSet is null");
-                    return RedirectToAction("Error", "Home", new { message = "Database configuration error" });
+                    throw new InvalidOperationException("Venue DbSet is not initialized");
                 }
 
                 var venues = await _dbContext.Venue
-                    .OrderBy(v => v.VenueName)
+                    .AsNoTracking()
                     .ToListAsync();
 
-                _logger.LogInformation($"Retrieved {venues.Count} venues successfully");
+                _logger.LogInformation("Successfully retrieved {count} venues", venues.Count);
+                
                 return View(venues);
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Database error while retrieving venues");
-                return RedirectToAction("Error", "Home", new { message = "A database error occurred. Please try again later." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving venues");
-                return RedirectToAction("Error", "Home", new { message = "Unable to retrieve venues. Please try again." });
+                _logger.LogError(ex, "Failed to retrieve venue list");
+                return RedirectToAction("Error", "Home", new 
+                { 
+                    message = "Unable to retrieve venues. Please try again later." 
+                });
             }
         }
 

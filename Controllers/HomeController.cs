@@ -14,13 +14,13 @@ using Microsoft.AspNetCore.Mvc;
 // [Accessed: 2025]  
 using Microsoft.EntityFrameworkCore;
 using ST10435077___CLDV6211_POE.Models;
+using ST10435077___CLDV6211_POE.Services;
 using System.Diagnostics;
 
 namespace ST10435077___CLDV6211_POE.Controllers
 {
     public class HomeController : Controller
-    {
-        private readonly ILogger<HomeController> _logger;
+    {        private readonly ILogger<HomeController> _logger;
 
         public HomeController(ILogger<HomeController> logger)
         {
