@@ -26,6 +26,11 @@ builder.Services.AddSingleton(x =>
     new BlobServiceClient(builder.Configuration.GetConnectionString("AzureStorageConnection")));
 builder.Services.AddSingleton<BlobService>();
 
+// Add HealthChecks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<EventEaseContext>()
+    .AddAzureBlobStorage(builder.Configuration.GetConnectionString("AzureStorageConnection"));
+
 var app = builder.Build();
 
 // Configure error handling first
@@ -46,5 +51,8 @@ app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Map HealthChecks
+app.MapHealthChecks("/health");
 
 app.Run();

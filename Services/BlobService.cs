@@ -1,6 +1,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -21,22 +22,18 @@ namespace ST10435077___CLDV6211_POE.Services
 
         public async Task<string> UploadAsync(IFormFile file)
         {
-            try
+            return await ExecuteWithRetryAsync(async () =>
             {
                 var uniqueFileName = $"{Guid.NewGuid()}-{file.FileName}";
                 var blobClient = _containerClient.GetBlobClient(uniqueFileName);
                 await blobClient.UploadAsync(file.OpenReadStream(), true);
                 return blobClient.Uri.ToString();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            });
         }
 
         public async Task<List<string>> ListBlobsAsync()
         {
-            try
+            return await ExecuteWithRetryAsync(async () =>
             {
                 var blobs = new List<string>();
                 await foreach (var blobItem in _containerClient.GetBlobsAsync())
@@ -44,16 +41,12 @@ namespace ST10435077___CLDV6211_POE.Services
                     blobs.Add(blobItem.Name);
                 }
                 return blobs;
-            }
-            catch (Exception)
-            {
-                return new List<string>();
-            }
+            });
         }
 
         public async Task<(Stream Stream, string ContentType)> DownloadAsync(string fileName)
         {
-            try
+            return await ExecuteWithRetryAsync(async () =>
             {
                 var blobClient = _containerClient.GetBlobClient(fileName);
                 var memoryStream = new MemoryStream();
@@ -61,25 +54,32 @@ namespace ST10435077___CLDV6211_POE.Services
                 memoryStream.Position = 0;
                 var properties = await blobClient.GetPropertiesAsync();
                 return (memoryStream, properties.Value.ContentType);
-            }
-            catch (Exception)
-            {
-                return (new MemoryStream(), "application/octet-stream");
-            }
+            });
         }
 
         public async Task<bool> DeleteAsync(string fileName)
         {
-            try
+            return await ExecuteWithRetryAsync(async () =>
             {
                 var blobClient = _containerClient.GetBlobClient(fileName);
-                await blobClient.DeleteIfExistsAsync();
-                return true;
-            }
-            catch (Exception)
+                return await blobClient.DeleteIfExistsAsync();
+            });
+        }
+
+        private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation)
+        {
+            for (int i = 0; i < 3; i++)
             {
-                return false;
+                try
+                {
+                    return await operation();
+                }
+                catch (Exception) when (i < 2)
+                {
+                    await Task.Delay(1000 * (i + 1));
+                }
             }
+            throw new Exception("Operation failed after 3 retry attempts");
         }
     }
 }

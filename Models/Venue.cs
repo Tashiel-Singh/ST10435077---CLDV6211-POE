@@ -29,5 +29,13 @@ namespace ST10435077___CLDV6211_POE.Models
 
         // Navigation property: A Venue can be associated with multiple Bookings
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+        [DataType(DataType.DateTime)]
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
+        [DataType(DataType.DateTime)]
+        public DateTime? LastModifiedDate { get; set; }
+
+        public string? LastModifiedBy { get; set; }
     }
 }

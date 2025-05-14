@@ -31,30 +31,37 @@
         </tr>
     </thead>
     <tbody>
-    @foreach (var venue in Model)
+    @try 
     {
-        <tr>
-            <td>@venue.VenueName</td>
-            <td>@venue.Location</td>
-            <td>@venue.Capacity</td>
-            <td>
-                @if (!string.IsNullOrEmpty(venue.ImageUrl))
-                {
-                    <img src="@Url.Action("DownloadImage", "Venue", new { fileName = venue.ImageUrl })" width="120" alt="Venue Image" />
-                }
-            </td>
-            <td>
-                <div style="display:inline-block">
-                    <a asp-action="VenueEdit" asp-route-VenueID="@venue.VenueId" class="btn btn-sm btn-warning">Edit</a>
-                </div>
-                <div style="display:inline-block">
-                    <form asp-action="Delete" method="post" class="d-inline">
-                        <input type="hidden" name="VenueID" value="@venue.VenueId" />
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </div>
-            </td>
-        </tr>
+        @foreach (var venue in Model ?? Enumerable.Empty<ST10435077___CLDV6211_POE.Models.Venue>())
+        {
+            <tr>
+                <td>@venue.VenueName</td>
+                <td>@venue.Location</td>
+                <td>@venue.Capacity</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(venue.ImageUrl))
+                    {
+                        <img src="@Url.Action("DownloadImage", "Venue", new { fileName = venue.ImageUrl })" width="120" alt="Venue Image" />
+                    }
+                </td>
+                <td>
+                    <div style="display:inline-block">
+                        <a asp-action="VenueEdit" asp-route-VenueID="@venue.VenueId" class="btn btn-sm btn-warning">Edit</a>
+                    </div>
+                    <div style="display:inline-block">
+                        <form asp-action="Delete" method="post" class="d-inline">
+                            <input type="hidden" name="VenueID" value="@venue.VenueId" />
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        }
+    }
+    catch (Exception ex)
+    {
+        <div class="alert alert-danger">Error loading venues: @ex.Message</div>
     }
     </tbody>
 </table>
