@@ -16,6 +16,29 @@
 
 <h2>Venue List</h2>
 
+<!--
+    VenueList.cshtml
+    - Search/filter form for venue availability (dropdown: All, Available, Unavailable)
+    - Binds to VenueList(bool? available) in VenueController
+    - Uses VenueAvailability property in Venue model
+-->
+<form method="get" asp-action="VenueList" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label for="available" class="form-label">Availability</label>
+            <select name="available" id="available" class="form-select" asp-items="@(new SelectList(new[] {
+                new { Value = "", Text = "All" },
+                new { Value = "true", Text = "Available" },
+                new { Value = "false", Text = "Unavailable" },
+            }, "Value", "Text", ViewBag.Available?.ToString()))">
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </div>
+</form>
+
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger">@TempData["Error"]</div>
@@ -28,13 +51,14 @@
             <th>Location</th>
             <th>Capacity</th>
             <th>Image</th>
+            <th>Available</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
     @try 
     {
-        @foreach (var venue in Model ?? Enumerable.Empty<ST10435077___CLDV6211_POE.Models.Venue>())
+        foreach (var venue in Model ?? Enumerable.Empty<ST10435077___CLDV6211_POE.Models.Venue>())
         {
             <tr>
                 <td>@venue.VenueName</td>
@@ -43,17 +67,17 @@
                 <td>
                     @if (!string.IsNullOrEmpty(venue.ImageUrl))
                     {
-                        try {
-                            <img src="@Url.Action("DownloadImage", "Venue", new { fileName = venue.ImageUrl })" 
-                                 width="120" 
-                                 alt="Venue Image" 
-                                 onerror="this.onerror=null; this.src='/images/placeholder.png'; this.alt='Image not available';" />
-                        }
-                        catch {
-                            <span>Image not available</span>
-                        }
+                        <img src="@Url.Action("DownloadImage", "Venue", new { fileName = venue.ImageUrl })"
+                             width="120"
+                             alt="Venue Image"
+                             onerror="this.onerror=null; this.src='/images/placeholder.png'; this.alt='Image not available';" />
+                    }
+                    else
+                    {
+                        <img src="/images/placeholder.png" width="120" alt="No image available" />
                     }
                 </td>
+                <td>@(venue.VenueAvailability ? "Yes" : "No")</td>
                 <td>
                     <div style="display:inline-block">
                         <a asp-action="VenueEdit" asp-route-VenueID="@venue.VenueId" class="btn btn-sm btn-warning">Edit</a>
@@ -70,7 +94,7 @@
     }
     catch (Exception ex)
     {
-        <div class="alert alert-danger">Error loading venues: @ex.Message</div>
+        <tr><td colspan="6"><div class="alert alert-danger">Error loading venues: @ex.Message</div></td></tr>
     }
     </tbody>
 </table>

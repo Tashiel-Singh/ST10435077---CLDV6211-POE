@@ -20,15 +20,19 @@ namespace ST10435077___CLDV6211_POE.Services
             _containerClient.CreateIfNotExists(PublicAccessType.BlobContainer);
         }
 
-        public async Task<string> UploadAsync(IFormFile file)
+        public async Task<string?> UploadAsync(IFormFile file)
         {
-            return await ExecuteWithRetryAsync(async () =>
+            try
             {
-                var uniqueFileName = $"{Guid.NewGuid()}-{file.FileName}";
+                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
                 var blobClient = _containerClient.GetBlobClient(uniqueFileName);
                 await blobClient.UploadAsync(file.OpenReadStream(), true);
-                return blobClient.Uri.ToString();
-            });
+                return uniqueFileName;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public async Task<List<string>> ListBlobsAsync()
@@ -44,26 +48,36 @@ namespace ST10435077___CLDV6211_POE.Services
             });
         }
 
-        public async Task<(Stream Stream, string ContentType)> DownloadAsync(string fileName)
+        public async Task<(Stream? Stream, string? ContentType)> DownloadAsync(string fileName)
         {
-            return await ExecuteWithRetryAsync(async () =>
+            try
             {
                 var blobClient = _containerClient.GetBlobClient(fileName);
+                if (!await blobClient.ExistsAsync())
+                    return (null, null);
                 var memoryStream = new MemoryStream();
                 await blobClient.DownloadToAsync(memoryStream);
                 memoryStream.Position = 0;
                 var properties = await blobClient.GetPropertiesAsync();
                 return (memoryStream, properties.Value.ContentType);
-            });
+            }
+            catch (Exception)
+            {
+                return (null, null);
+            }
         }
 
         public async Task<bool> DeleteAsync(string fileName)
         {
-            return await ExecuteWithRetryAsync(async () =>
+            try
             {
                 var blobClient = _containerClient.GetBlobClient(fileName);
                 return await blobClient.DeleteIfExistsAsync();
-            });
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation)

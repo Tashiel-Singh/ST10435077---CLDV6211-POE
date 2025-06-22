@@ -12,6 +12,26 @@
 
 <h1>Event List</h1>
 
+<form method="get" asp-action="EventList" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label for="eventType" class="form-label">Event Type</label>
+            <input type="text" name="eventType" id="eventType" class="form-control" value="@ViewBag.EventType" placeholder="Search by type..." />
+        </div>
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" name="startDate" id="startDate" class="form-control" value="@ViewBag.StartDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" name="endDate" id="endDate" class="form-control" value="@ViewBag.EndDate" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </div>
+</form>
+
 @if (!ViewData.ModelState.IsValid)
 {
     <div class="alert alert-danger">
@@ -26,6 +46,7 @@
     <thead>
         <tr>
             <th>Name</th>
+            <th>Type</th>
             <th>Date</th>
             <th>Venue</th>
             <th>Actions</th>
@@ -36,6 +57,7 @@
         {
             <tr>
                 <td>@e.EventName</td>
+                <td>@(string.IsNullOrEmpty(e.EventType) ? "-" : e.EventType)</td>
                 <td>@e.EventDate.ToString("d")</td>
                 <td>@e.Venue?.VenueName</td>
                 <td>

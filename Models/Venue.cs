@@ -37,5 +37,7 @@ namespace ST10435077___CLDV6211_POE.Models
         public DateTime? LastModifiedDate { get; set; }
 
         public string? LastModifiedBy { get; set; }
+
+        public bool VenueAvailability { get; set; }
     }
 }

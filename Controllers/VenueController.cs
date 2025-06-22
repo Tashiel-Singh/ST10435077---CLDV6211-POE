@@ -31,14 +31,16 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         // GET: Venue
+        // In Index, call VenueList with null to show all venues by default
         public async Task<IActionResult> Index()
         {
-            return await VenueList();
+            return await VenueList(null);
         }
 
         // GET: Venue/VenueList
+        // Added filtering by VenueAvailability (used in VenueList.cshtml for search/filter UI)
         [HttpGet]
-        public async Task<IActionResult> VenueList()
+        public async Task<IActionResult> VenueList(bool? available)
         {
             try
             {
@@ -48,11 +50,14 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 {
                     throw new InvalidOperationException("Venue DbSet is not initialized");
                 }
-
-                var venues = await _dbContext.Venue
-                    .AsNoTracking()
-                    .ToListAsync();
-
+                // Query supports filtering by availability (true/false/null for all)
+                var query = _dbContext.Venue.AsNoTracking().AsQueryable();
+                if (available.HasValue)
+                {
+                    query = query.Where(v => v.VenueAvailability == available.Value); // Filter by availability
+                }
+                var venues = await query.ToListAsync();
+                ViewBag.Available = available; // Pass filter state to view
                 _logger.LogInformation("Successfully retrieved {count} venues", venues.Count);
                 
                 return View(venues);
@@ -91,15 +96,14 @@ namespace ST10435077___CLDV6211_POE.Controllers
                         return View(venue);
                     }
 
-                    try
+                    var fileName = await _blobService.UploadAsync(imageFile);
+                    if (!string.IsNullOrEmpty(fileName))
                     {
-                        venue.ImageUrl = await _blobService.UploadAsync(imageFile);
+                        venue.ImageUrl = fileName;
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        _logger.LogError(ex, "Error uploading image to blob storage");
-                        ModelState.AddModelError("ImageFile", "Failed to upload image. Please try again.");
-                        return View(venue);
+                        TempData["Error"] = "Image upload failed. Venue will be saved without an image.";
                     }
                 }
 
@@ -169,6 +173,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
                         existingVenue.VenueName = venue.VenueName;
                         existingVenue.Location = venue.Location;
                         existingVenue.Capacity = venue.Capacity;
+                        existingVenue.VenueAvailability = venue.VenueAvailability;
 
                         if (imageFile != null)
                         {
@@ -179,15 +184,14 @@ namespace ST10435077___CLDV6211_POE.Controllers
                                 return View(venue);
                             }
 
-                            try
+                            var fileName = await _blobService.UploadAsync(imageFile);
+                            if (!string.IsNullOrEmpty(fileName))
                             {
-                                existingVenue.ImageUrl = await _blobService.UploadAsync(imageFile);
+                                existingVenue.ImageUrl = fileName;
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                _logger.LogError(ex, "Error uploading image to blob storage");
-                                ModelState.AddModelError("ImageFile", "Failed to upload image. Please try again.");
-                                return View(venue);
+                                TempData["Error"] = "Image upload failed. Venue will be saved without an image.";
                             }
                         }
 
@@ -292,29 +296,23 @@ namespace ST10435077___CLDV6211_POE.Controllers
             {
                 if (string.IsNullOrEmpty(fileName))
                 {
-                    _logger.LogWarning("No file name provided");
-                    return NotFound();
+                    return File("/images/placeholder.png", "image/png");
                 }
-
                 var (stream, contentType) = await _blobService.DownloadAsync(fileName);
-                
                 if (stream == null)
                 {
-                    _logger.LogWarning("Image not found: {fileName}", fileName);
-                    return NotFound();
+                    return File("/images/placeholder.png", "image/png");
                 }
-
                 if (string.IsNullOrEmpty(contentType))
                 {
-                    contentType = "image/jpeg"; // Default to JPEG if content type is not set
+                    contentType = "image/jpeg";
                 }
-
                 return File(stream, contentType, fileName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error downloading image {fileName}", fileName);
-                return NotFound();
+                return File("/images/placeholder.png", "image/png");
             }
         }
 

@@ -9,6 +9,8 @@ public partial class Event
 
     public string EventName { get; set; } = null!;
 
+    public string? EventType { get; set; }
+
     public DateTime EventDate { get; set; }
 
     public string? Description { get; set; }

@@ -41,6 +41,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 var @event = new Event
                 {
                     EventName = viewModel.EventName,
+                    EventType = viewModel.EventType,
                     EventDate = viewModel.EventDate,
                     Description = viewModel.Description,
                     VenueId = viewModel.VenueId
@@ -54,11 +55,27 @@ namespace ST10435077___CLDV6211_POE.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> EventList()
+        public async Task<IActionResult> EventList(string eventType, DateTime? startDate, DateTime? endDate)
         {
-            var events = await _dbContext.Event
-                .Include(e => e.Venue)  // Include venue information
-                .ToListAsync();
+            var query = _dbContext.Event.Include(e => e.Venue).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(eventType))
+            {
+                query = query.Where(e => e.EventType != null && e.EventType.Contains(eventType));
+            }
+            if (startDate.HasValue)
+            {
+                query = query.Where(e => e.EventDate >= startDate.Value);
+            }
+            if (endDate.HasValue)
+            {
+                query = query.Where(e => e.EventDate <= endDate.Value);
+            }
+
+            var events = await query.ToListAsync();
+            ViewBag.EventType = eventType;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
             return View(events);
         }
 
@@ -86,6 +103,7 @@ namespace ST10435077___CLDV6211_POE.Controllers
                 if (@event != null)
                 {
                     @event.EventName = viewModel.EventName;
+                    @event.EventType = viewModel.EventType;
                     @event.EventDate = viewModel.EventDate;
                     @event.Description = viewModel.Description;
                     @event.VenueId = viewModel.VenueId;

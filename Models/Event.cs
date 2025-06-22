@@ -21,6 +21,10 @@ namespace ST10435077___CLDV6211_POE.Models
         [DataType(DataType.DateTime)] // Hint for UI frameworks
         public DateTime EventDate { get; set; }
 
+        [StringLength(100)]
+        [Display(Name = "Event Type")]
+        public string? EventType { get; set; }
+
         public string? Description { get; set; } // Nullable string
 
         // Foreign Key Property

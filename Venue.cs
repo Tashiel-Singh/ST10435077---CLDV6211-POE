@@ -15,6 +15,8 @@ public partial class Venue
 
     public string? ImageUrl { get; set; } 
 
+    public bool VenueAvailability { get; set; }
+
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
